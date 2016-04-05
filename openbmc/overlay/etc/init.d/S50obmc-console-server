@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# OpenBMC serial console service
+#
+
+case "$1" in
+  start)
+ 	echo "Starting OpenBMC console server..."
+	/usr/sbin/obmc-console-server &
+	;;
+  stop)
+	printf "Stopping OpenBMC console server..."
+	/usr/sbin/obmc-console-server &
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+
