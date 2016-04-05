@@ -1,1 +1,2 @@
+source "$BR2_EXTERNAL/package/pdbg/Config.in"
 source "$BR2_EXTERNAL/package/pflash/Config.in"
