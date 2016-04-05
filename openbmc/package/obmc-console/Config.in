@@ -1,0 +1,4 @@
+config BR2_PACKAGE_OBMC_CONSOLE
+	bool "obmc-console"
+	help
+	 Daemon to handle UART console connections
