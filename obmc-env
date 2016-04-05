@@ -1,0 +1,13 @@
+#!/bin/bash
+__PWD=`pwd`
+
+if [ -e ./customrc ]; then
+    source ./customrc
+fi
+
+export BR2_EXTERNAL=${__PWD}/openbmc
+export BR2_DL_DIR=${__PWD}/dl
+
+obmc-build () {
+    make --directory=${__PWD}/buildroot O=${__PWD}/output $@
+}
