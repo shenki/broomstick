@@ -1,8 +1,19 @@
 #!/bin/bash
 __PWD=`pwd`
 
+if [ "$0" == $BASH_SOURCE ]; then
+	echo "Script must be sourced not run"
+	exit -1
+fi
+
 if [ -e ./customrc ]; then
     source ./customrc
+fi
+
+if [ ! -f buildroot/Makefile ]; then
+	echo "You have forgotten to check out buildroot. Run:"
+	echo "  git submodule init && git submodule update"
+	return -1
 fi
 
 export BR2_EXTERNAL=${__PWD}/openbmc
