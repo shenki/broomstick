@@ -1,0 +1,4 @@
+FROM fedora:23
+RUN dnf -y install \
+	gcc-c++ make git patch which wget unzip tar cpio python bzip2 bc \
+	findutils perl-Data-Dumper perl-Thread-Queue
