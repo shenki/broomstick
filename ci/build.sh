@@ -33,7 +33,8 @@ do
         fi
 
 	Dockerfile=$(head -n1 $base_dockerfile; echo ${PROXY}; tail -n +2 $base_dockerfile; cat << EOF
-RUN groupadd -g ${GROUPS} ${USER} && useradd -d ${HOME} -m -u ${UID} -g ${GROUPS} ${USER}
+RUN grep -q ${UID} /etc/passwd || useradd -d ${HOME} -m -u ${UID} -g ${GROUPS} ${USER}
+RUN grep -q ${GROUPS} /etc/group || groupadd -g ${GROUPS} ${USER}
 ${PROXY}
 USER ${USER}
 ENV HOME ${HOME}
