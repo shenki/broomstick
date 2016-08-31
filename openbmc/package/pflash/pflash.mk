@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PFLASH_VERSION = a56b9aa8e654aa559538694dac539135b942f8e0
+PFLASH_VERSION = 863ac3c5d2f8a5ea5d471167f3da5cb07aab72fc
 
 PFLASH_SITE = $(call github,open-power,skiboot,$(PFLASH_VERSION))
 PFLASH_INSTALL_STAGING = YES
