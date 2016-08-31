@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OBMC_CONSOLE_VERSION = 54e9569d14b127806e45e1c17ec4a1f5f7271d3f
+OBMC_CONSOLE_VERSION = 87e344cd6bd848f886e226c8d58ffe4da77ce4bc
 
 OBMC_CONSOLE_SITE = $(call github,openbmc,obmc-console,$(OBMC_CONSOLE_VERSION))
 OBMC_CONSOLE_LICENSE = Apache 2.0
