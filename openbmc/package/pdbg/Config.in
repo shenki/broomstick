@@ -1,6 +1,0 @@
-config BR2_PACKAGE_PDBG
-	bool "pdbg"
-	depends on BR2_arm
-	help
-	  PowerPC FSI Debugger, for low level debugging of a PowerPC CPU
-	  over FSI
