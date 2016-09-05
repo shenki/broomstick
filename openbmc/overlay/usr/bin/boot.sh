@@ -2,6 +2,7 @@
 
 GPIO_BASE=320
 
+# GPIOE1
 POWER=$(($GPIO_BASE+33))
 PGOOD=$(($GPIO_BASE+23))
 PCIE_RST_N=$(($GPIO_BASE+13))
@@ -40,19 +41,10 @@ devmem 0x1e789088 32 0x30000E00
 #   HWNCARE: adecoding range control bit
 devmem 0x1e78908C 32 0xFE0001FF
 
-# SCU
-devmem 0x1e6e2088 32 0x01C000FF
-devmem 0x1e6e208c 32 0xC1C000FF
-devmem 0x1e6e2090 32 0x003FA009
-
-# GPIO
-devmem 0x1E780000 32 0x13008CE7
-devmem 0x1E780004 32 0x0370E677
-devmem 0x1E780020 32 0xDF48F7FF
-devmem 0x1E780024 32 0xC738F202
-
-# LPC
+# LPC SCR0SIO
 devmem 0x1e789170 32 0x00000042
+
+# LPC SCR1SIO
 devmem 0x1e789174 32 0x00004000
 
 # Make sure flash is functional
@@ -68,5 +60,5 @@ while [ $(cat /sys/class/gpio/gpio${PGOOD}/value) -eq 0 ]; do true; done
 sleep 1
 
 # Kick off boot
-./pdbg getcfam 0x281c
-./pdbg putcfam 0x281c 0x30000000 && ./pdbg putcfam 0x281c 0xb0000000
+pdbg getcfam 0x281c
+pdbg putcfam 0x281c 0x30000000 && pdbg putcfam 0x281c 0xb0000000
