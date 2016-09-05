@@ -40,13 +40,6 @@ devmem 0x1e789088 32 0x30000E00
 #   HWNCARE: adecoding range control bit
 devmem 0x1e78908C 32 0xFE0001FF
 
-# Flash config
-devmem 0x1e630000 32 0x00000003
-devmem 0x1e630004 32 0x00002404
-
-# SCU
-devmem 0x1e6e2084 32 0x00fff0c0
-
 devmem 0x1E78909C 32 0x00000000
 
 # SCU
