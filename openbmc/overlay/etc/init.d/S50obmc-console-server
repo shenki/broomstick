@@ -3,23 +3,35 @@
 # OpenBMC serial console service
 #
 
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/obmc-console-server
+DAEMON_OPTS=ttyS0
+NAME=obmc-console-server
+
+test -x "${DAEMON}" || exit 0
+
 case "$1" in
   start)
  	echo "Starting OpenBMC console server..."
-	/usr/sbin/obmc-console-server /dev/ttyS0 &
+	start-stop-daemon --start --background --quiet --make-pidfile --pidfile=/run/${NAME}.pid --exec ${DAEMON} -- ${DAEMON_OPTS}
+	exit $?
 	;;
   stop)
-	printf "Stopping OpenBMC console server..."
-	/usr/sbin/obmc-console-server &
+	echo "Stopping OpenBMC console server..."
+	start-stop-daemon --stop --quiet --pidfile=/run/${NAME}.pid --exec ${DAEMON}
+	RETVAL=$?
+	rm -rf /run/${NAME}.pid
+	exit $?
 	;;
   restart|reload)
 	"$0" stop
 	"$0" start
+	exit $?
 	;;
   *)
 	echo "Usage: $0 {start|stop|restart}"
-	exit 1
+	exit 3
 esac
 
-exit $?
+exit 0
 
