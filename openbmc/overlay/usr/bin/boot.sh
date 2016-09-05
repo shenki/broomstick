@@ -25,26 +25,42 @@ echo 0 > /sys/class/gpio/gpio${PCIE_RST_N}/value
 echo 0 > /sys/class/gpio/gpio${PEX_PERST_N}/value
 sleep 10
 
-# Setup LPC registers, etc.
+# LPC HCR5
+#  10: Enable LPC FHW cycles
+#   8: Enable LPC to AHB bridge
 devmem 0x1e789080 32 0x00000500
+
+# LPC HCR7: LPC to AHB bridge
+#  ADRBASE: remapping base address
+#  HWMBASE: decoding base address [31:16]
 devmem 0x1e789088 32 0x30000E00
+
+# LPC HICR8: LPC to AHB bridge
+#  ADDRMASK: remapping mask
+#   HWNCARE: adecoding range control bit
 devmem 0x1e78908C 32 0xFE0001FF
 
+# Flash config
 devmem 0x1e630000 32 0x00000003
 devmem 0x1e630004 32 0x00002404
 
+# SCU
 devmem 0x1e6e2084 32 0x00fff0c0
 
 devmem 0x1E78909C 32 0x00000000
 
+# SCU
 devmem 0x1e6e2088 32 0x01C000FF
 devmem 0x1e6e208c 32 0xC1C000FF
 devmem 0x1e6e2090 32 0x003FA009
 
+# GPIO
 devmem 0x1E780000 32 0x13008CE7
 devmem 0x1E780004 32 0x0370E677
 devmem 0x1E780020 32 0xDF48F7FF
 devmem 0x1E780024 32 0xC738F202
+
+# LPC
 devmem 0x1e789170 32 0x00000042
 devmem 0x1e789174 32 0x00004000
 
