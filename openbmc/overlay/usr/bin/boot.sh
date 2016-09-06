@@ -10,23 +10,39 @@ function gpio {
 	echo $(( (`asciiof $1` - `asciiof a`) * 8 + $2 + $GPIO_BASE))
 }
 
-# GPIOE1
 POWER=$(gpio e 1)
 PGOOD=$(gpio c 7)
 PCIE_RST_N=$(gpio b 5)
 PEX_PERST_N=$(gpio b 6)
 
-# Setup GPIO if required
-if [ ! -e /sys/class/gpio/gpio${POWER} ]; then
-	echo $POWER > /sys/class/gpio/export
-	echo out > /sys/class/gpio/gpio${POWER}/direction
-	echo $PGOOD > /sys/class/gpio/export
-	echo in > /sys/class/gpio/gpio${PGOOD}/direction
-	echo $PCIE_RST_N > /sys/class/gpio/export
-	echo out > /sys/class/gpio/gpio${PCIE_RST_N}/direction
-	echo $PEX_PERST_N > /sys/class/gpio/export
-	echo out > /sys/class/gpio/gpio${PEX_PERST_N}/direction
-fi
+BMC_FAN_RESERVED_N=$(gpio a 0)
+APSS_WDT_N=$(gpio a 1)
+APSS_BOOT_MODE=$(gpio b 1)
+APSS_RESET_N=$(gpio b 2)
+SPIVID_STBY_RESET_N=$(gpio b 7)
+BMC_POWER_UP=$(gpio d 1)
+BMC_BATTEY_TEST=$(gpio f 1)
+AST_HW_FAULT_N=$(gpio f 4)
+AST_SYS_FAULT_N=$(gpio f 5)
+BMC_FULL_SPEED_N=$(gpio f 7)
+BMC_FAN_ERROR_N=$(gpio g 3)
+BMC_WDT_RST1_P=$(gpio g 4)
+BMC_WDT_RST2_P=$(gpio g 5)
+PE_SLOT_TEST_EN_N=$(gpio h 0)
+BMC_RTCRST_N=$(gpio h 1)
+SYS_POWEROK_BMC=$(gpio h 2)
+SCM1_FSI0_DATA_EN=$(gpio h 6)
+BMC_TMP_INT_N=$(gpio h 7)
+
+# Setup GPIO
+echo $POWER > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio${POWER}/direction
+echo $PGOOD > /sys/class/gpio/export
+echo in > /sys/class/gpio/gpio${PGOOD}/direction
+echo $PCIE_RST_N > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio${PCIE_RST_N}/direction
+echo $PEX_PERST_N > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio${PEX_PERST_N}/direction
 
 # Turn power off (active low)
 echo 1 > /sys/class/gpio/gpio${POWER}/value
