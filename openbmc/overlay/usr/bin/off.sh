@@ -17,17 +17,15 @@ PEX_PERST_N=$(gpio b 6)
 
 for gpio in $POWER $PCIE_RST_N $PEX_PERST_N;
 do
-	if [ ! -f /sys/class/gpio/gpio${gpio} ]
+	if [ ! -e /sys/class/gpio/gpio${gpio} ]
 	then
-		echo GPIO $gpio already exported
-	else
 		echo $gpio > /sys/class/gpio/export;
-		echo GPIO $gpio exported
 	fi
 done
 
 
 # Turn power off (active low)
+echo "Turn power off..."
 echo 1 > /sys/class/gpio/gpio${POWER}/value
 echo 0 > /sys/class/gpio/gpio${PCIE_RST_N}/value
 echo 0 > /sys/class/gpio/gpio${PEX_PERST_N}/value

@@ -60,12 +60,9 @@ EOF
 
 for gpio in $HIGH_OUTPUTS $INPUTS $POWER $PGOOD $PCIE_RST_N $PEX_PERST_N;
 do
-	if [ ! -f /sys/class/gpio/gpio${gpio} ]
+	if [ ! -e /sys/class/gpio/gpio${gpio} ]
 	then
-		echo GPIO $gpio already exported
-	else
 		echo $gpio > /sys/class/gpio/export;
-		echo GPIO $gpio exported
 	fi
 done
 
@@ -84,6 +81,7 @@ echo out > /sys/class/gpio/gpio${PCIE_RST_N}/direction
 echo out > /sys/class/gpio/gpio${PEX_PERST_N}/direction
 
 # Turn power off (active low)
+echo "Turning power off..."
 echo 1 > /sys/class/gpio/gpio${POWER}/value
 echo 0 > /sys/class/gpio/gpio${PCIE_RST_N}/value
 echo 0 > /sys/class/gpio/gpio${PEX_PERST_N}/value
@@ -115,17 +113,20 @@ devmem ${LPC_SCR0SIO} 32 0x00000042
 devmem ${LPC_SCR1SIO} 32 0x00004000
 
 # Make sure flash is functional
-pflash -i
+pflash -i > /dev/null
 
 # Power on
+echo "Powering on..."
 echo 0 > /sys/class/gpio/gpio${POWER}/value
 echo 1 > /sys/class/gpio/gpio${PCIE_RST_N}/value
 echo 1 > /sys/class/gpio/gpio${PEX_PERST_N}/value
 
 # Wait for PGOOD
+echo "Waiting for pgood..."
 while [ $(cat /sys/class/gpio/gpio${PGOOD}/value) -eq 0 ]; do true; done
 sleep 1
 
 # Kick off boot
+echo "Booting..."
 pdbg getcfam 0x281c
 pdbg putcfam 0x281c 0x30000000 && pdbg putcfam 0x281c 0xb0000000
