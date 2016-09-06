@@ -58,24 +58,29 @@ $BMC_TMP_INT_N
 EOF
 )
 
+for gpio in $HIGH_OUTPUTS $INPUTS $POWER $PGOOD $PCIE_RST_N $PEX_PERST_N;
+do
+	if [ ! -f /sys/class/gpio/gpio${gpio} ]
+	then
+		echo GPIO $gpio already exported
+	else
+		echo $gpio > /sys/class/gpio/export;
+		echo GPIO $gpio exported
+	fi
+done
+
 for gpio in $HIGH_OUTPUTS; do
-	echo $gpio > /sys/class/gpio/export;
 	echo high > /sys/class/gpio/gpio${gpio}/direction
 done
 
 for gpio in $INPUTS; do
-	echo $gpio > /sys/class/gpio/export;
 	echo in > /sys/class/gpio/gpio${gpio}/direction
 done
 
 # Setup GPIO
-echo $POWER > /sys/class/gpio/export
 echo out > /sys/class/gpio/gpio${POWER}/direction
-echo $PGOOD > /sys/class/gpio/export
 echo in > /sys/class/gpio/gpio${PGOOD}/direction
-echo $PCIE_RST_N > /sys/class/gpio/export
 echo out > /sys/class/gpio/gpio${PCIE_RST_N}/direction
-echo $PEX_PERST_N > /sys/class/gpio/export
 echo out > /sys/class/gpio/gpio${PEX_PERST_N}/direction
 
 # Turn power off (active low)
@@ -93,21 +98,21 @@ LPC_HCR8=0x1e78908C
 # LPC HCR5
 #  10: Enable LPC FHW cycles
 #   8: Enable LPC to AHB bridge
-devmem $(LPC_HCR5) 32 0x00000500
+devmem ${LPC_HCR5} 32 0x00000500
 
 # LPC HCR7: LPC to AHB bridge
 #  ADRBASE: remapping base address
 #  HWMBASE: decoding base address [31:16]
-devmem $(LPC_HCR7) 32 0x30000E00
+devmem ${LPC_HCR7} 32 0x30000E00
 
 # LPC HICR8: LPC to AHB bridge
 #  ADDRMASK: remapping mask
 #   HWNCARE: decoding range control bit
-devmem $(LPC_HCR8) 32 0xFE0001FF
+devmem ${LPC_HCR8} 32 0xFE0001FF
 
 # Scratch registers
-devmem $(LPC_SCR0SIO) 32 0x00000042
-devmem $(LPC_SCR1SIO) 32 0x00004000
+devmem ${LPC_SCR0SIO} 32 0x00000042
+devmem ${LPC_SCR1SIO} 32 0x00004000
 
 # Make sure flash is functional
 pflash -i
