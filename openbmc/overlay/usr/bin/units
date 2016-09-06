@@ -1,0 +1,360 @@
+#!/usr/bin/python3
+#
+# Units prints out values in all kinds of representations
+#
+# Copyright 2016 Michael Ellerman <mpe@ellerman.id.au>
+#
+# Licensed under Apache 2.0
+#
+
+import sys
+import math
+
+
+def to_bytes(val):
+    bytes = []
+
+    while val > 0:
+        b = val & 0xff
+        bytes.insert(0, b)
+        val = val >> 8
+
+    return bytes
+
+
+def to_ascii(val):
+    bytes = to_bytes(val)
+    tmp = []
+    for byte in bytes:
+        if byte > 33 and byte < 127:
+            byte = chr(byte)
+        else:
+            byte = '-'
+        tmp.append(byte)
+
+    return ''.join(tmp)
+
+
+def to_byte_vals(val):
+    bytes = to_bytes(val)
+    tmp = []
+    for byte in bytes:
+        tmp.append('%8s' % hex(byte))
+
+    return ' '.join(tmp)
+
+def to_bswap(val):
+    print('val is "%s"' % hex(val))
+    bytes = to_bytes(val)
+    bytes.reverse()
+    tmp = []
+    for byte in bytes:
+        tmp.append('_%02x_' % byte)
+
+    return ''.join(tmp)
+
+def to_binary(val):
+    bytes = to_bytes(val)
+    tmp = []
+    for byte in bytes:
+        tmp2 = []
+        for i in range(0, 8):
+            tmp2.insert(0, str(byte & 0x1))
+            byte = byte >> 1
+        tmp.append(''.join(tmp2))
+
+    return ' '.join(tmp)
+
+
+def _to_bits(val):
+    set = []
+    i = 0
+    while val > 0:
+        if val & 0x1:
+            set.insert(0, i)
+        val = val >> 1
+        i += 1
+            
+    return set
+
+def format_bits(set):
+    return ', '.join(['%2d' % b for b in set])
+
+def to_bits(val):
+    bits = _to_bits(val)
+    count = ' (%d)' % len(bits)
+    return format_bits(bits) + count
+
+def negate(val):
+    max_bit = max(_to_bits(val))
+    mask = (1 << max_bit + 1) - 1
+    return (val - 1) ^ mask
+
+def to_ibm_bits(val, width):
+    set = _to_bits(val)
+    set = [width - 1 - b for b in set]
+    return format_bits(set)
+
+def to_ibm_64b(val):
+    return to_ibm_bits(val, 64)
+
+def to_ibm_32b(val):
+    if val < 0x100000000:
+        return to_ibm_bits(val, 32)
+    return None
+
+def to_ibm_128b(val):
+    if val >= 0x10000000000000000:
+        return to_ibm_bits(val, 128)
+    return None
+
+opcode_map = {
+     2 : 'tdi',
+     3 : 'twi',
+     4 : 'vector',
+     7 : 'mulli',
+     8 : 'subfic',
+    10 : 'cmpli',
+    11 : 'cmpi',
+    12 : 'addic',
+    13 : 'addic.',
+    14 : 'addi',
+    15 : 'addis',
+    16 : 'bc',
+    17 : 'sc',
+    18 : 'b',
+    19 : 'CR ops',
+    20 : 'rlwimi : Rotate left word immediate then mask insert',
+    21 : 'rlwinm : Rotate left word immediate then and with mask',
+    23 : 'rlwnm : Rotate left word then and with mask',
+    24 : 'ori',
+    25 : 'oris',
+    26 : 'xori',
+    27 : 'xoris',
+    28 : 'andi.',
+    29 : 'andis.',
+    30 : 'FX',
+    31 : 'FX ext.',
+    32 : 'lwz',
+    33 : 'lwzu',
+    34 : 'lbz',
+    35 : 'lbzu',
+    36 : 'stw',
+    37 : 'stwu',
+    38 : 'stb',
+    39 : 'stbu',
+    40 : 'lhz',
+    41 : 'lhzu',
+    42 : 'lha',
+    43 : 'lhau',
+    44 : 'sth',
+    45 : 'sthu',
+    46 : 'lmw',
+    47 : 'stmw',
+    48 : 'lfs',
+    49 : 'lfsu',
+    50 : 'lfd',
+    51 : 'lfdu',
+    52 : 'stfs',
+    53 : 'stfsu',
+    54 : 'stfd',
+    55 : 'stfdu',
+    56 : 'lq',
+    57 : 'lfdp',
+    58 : 'FX loads',
+    59 : 'FP single & DFP ops',
+    60 : 'VSX ext.',
+    61 : 'stfdp',
+    62 : 'FX stores',
+    63 : 'FP double & DFP ops',
+}
+
+def to_ppc_opcode(val):
+    # If it's > 32b it can't be an instruction
+    if val >= 0x100000000:
+        return None
+
+    # Bits 0-5 (IBM) are the primary opcode
+    opcode = val >> 32 - 6
+    return opcode_map.get(opcode, None)
+
+def to_factor(val, count, factor):
+    ival = val / math.pow(factor, count)
+    fval = float(val) / math.pow(factor, count)
+
+    if fval < 0.001:
+        return None
+
+    return '%d\t%f' % (ival, fval)
+
+
+formatters = [
+    ('decimal', lambda x: x),
+    ('hex', lambda x: hex(x)),
+    ('ascii', to_ascii),
+    ('binary', to_binary),
+    ('bits set', to_bits),
+    ('neg', negate),
+    ('IBM 32b', to_ibm_32b),
+    ('IBM 64b', to_ibm_64b),
+    ('IBM 128b', to_ibm_128b),
+    ('Opcode', to_ppc_opcode),
+    ('bytes', to_byte_vals),
+    ('bswap', to_bswap),
+    ('KB', lambda x: to_factor(x, 1, 1024)),
+    ('MB', lambda x: to_factor(x, 2, 1024)),
+    ('GB', lambda x: to_factor(x, 3, 1024)),
+    ('TB', lambda x: to_factor(x, 4, 1024)),
+    ('PB', lambda x: to_factor(x, 5, 1024)),
+    ('XB', lambda x: to_factor(x, 6, 1024)),
+    ('mi', lambda x: to_factor(x, 2, 1000)),
+    ('bi', lambda x: to_factor(x, 3, 1000)),
+    ('tri', lambda x: to_factor(x, 4, 1000)),
+]
+
+
+def convert_binary(s):
+    s = s[len('0b'):]
+    max = len(s) - 1
+
+    val = 0
+    for c in s:
+        if int(c) == 1:
+            val += 1 << max
+        max -= 1
+
+    return val
+    
+
+def convert_one(s):
+    suffixes = [
+                ('K', 1024),
+                ('M', (1024*1024)),
+                ('G', (1024*1024*1024)),
+                ('T', (1024*1024*1024*1024)),
+                ('th', 1000),
+                ('mi', (1000*1000)),
+                ('bi', (1000*1000*1000)),
+                ('tri', (1000*1000*1000*1000))
+               ]
+
+    s = s.strip()
+
+    factor = 1
+    for suffix, mul in suffixes:
+        if s.endswith(suffix) or s.endswith(suffix.lower()):
+            factor = mul
+            s = s[:-len(suffix)]
+            break
+
+    val = None
+
+    if s.startswith('0b'):
+        val = convert_binary(s)
+    elif s.startswith('0x'):
+        val = int(s, 16)
+    else:
+        for c in 'abcdefABCDEF':
+            if c in s:
+                val = int(s, 16)
+                break
+
+    if val is None:
+        val = int(s)
+
+    val *= factor
+
+    return val
+
+
+def convert_complex(arg):
+    def split_token(s, token):
+        tokens = s.split(token)
+        tmp = []
+        for tok in tokens:
+            tmp.append(tok)
+            tmp.append(token)
+        tmp.pop(-1)
+        return tmp
+
+    tokens = split_token(arg, '+')
+    for op in ['-', '>>', '<<', '&', '*', '|']:
+        tmp = tokens
+        tokens = []
+        for s in tmp:
+            tokens.extend(split_token(s, op))
+
+    tokens.insert(0, '+')
+
+    val = 0
+    while len(tokens):
+        op = tokens.pop(0)
+        s  = tokens.pop(0)
+        if op == '+':
+            val += convert_one(s)
+        elif op == '-':
+            val -= convert_one(s)
+        elif op == '>>':
+            val = val >> convert_one(s)
+        elif op == '<<':
+            val = val << convert_one(s)
+        elif op == '&':
+            val = val & convert_one(s)
+        elif op == '*':
+            val *= convert_one(s)
+        elif op == '|':
+            val |= convert_one(s)
+        else:
+            raise Exception("Unknown op '%s'" % op)
+
+    return val
+
+
+def convert(arg):
+    complex = False
+    for op in ['+', '-', '>>', '<<', '&', '*', '|']:
+        if op in arg:
+            complex = True
+            break
+
+    if complex:
+        return convert_complex(arg)
+    else:
+        return convert_one(arg)
+
+def handle_arg(arg):
+    val = convert(arg)
+
+    width = 0
+    for prefix, func in formatters:
+        width = max(width, len(prefix))
+
+    for prefix, func in formatters:
+        s = func(val)
+        if s:
+            print('%*s: %s' % (width, prefix, s))
+
+def main(arg):
+    if arg == '-i':
+        while True:
+            print("# ")
+            try:
+                line = sys.stdin.readline()
+            except KeyboardInterrupt:
+                continue
+
+            if line:
+                handle_arg(line.strip())
+            else:
+                break
+    else:
+        handle_arg(arg)
+
+
+if __name__ == '__main__':
+	if len(sys.argv) != 2:
+		print('Usage: units (<value>|-i)', file=sys.stderr)
+		sys.exit(1)
+
+	main(sys.argv[1])
+	sys.exit(0)
