@@ -2,11 +2,19 @@
 
 GPIO_BASE=320
 
+function asciiof {
+	printf %d \'$1\'
+}
+
+function gpio {
+	echo $(( (`asciiof $1` - `asciiof a`) * 8 + $2 + $GPIO_BASE))
+}
+
 # GPIOE1
-POWER=$(($GPIO_BASE+33))
-PGOOD=$(($GPIO_BASE+23))
-PCIE_RST_N=$(($GPIO_BASE+13))
-PEX_PERST_N=$(($GPIO_BASE+14))
+POWER=$(gpio e 1)
+PGOOD=$(gpio c 7)
+PCIE_RST_N=$(gpio b 5)
+PEX_PERST_N=$(gpio b 6)
 
 # Setup GPIO if required
 if [ ! -e /sys/class/gpio/gpio${POWER} ]; then
