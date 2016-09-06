@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PFLASH_VERSION = 863ac3c5d2f8a5ea5d471167f3da5cb07aab72fc
+PFLASH_VERSION = skiboot-5.3.3
 
 PFLASH_SITE = $(call github,open-power,skiboot,$(PFLASH_VERSION))
 PFLASH_INSTALL_STAGING = YES
@@ -13,8 +13,13 @@ PFLASH_LICENSE_FILE = LICENCE
 
 PFLASH_MAKE_OPTS += CROSS_COMPILE="$(TARGET_CROSS)" \
 		    PFLASH_VERSION=$(PFLASH_VERSION) \
-		    DESTDIR=$(TARGET_DIR)/usr/bin \
+		    DESTDIR=$(TARGET_DIR) \
 		    -C $(@D)/external/pflash
+
+# A makefile bug causes recent versions of pflash to fail setting CC and LD
+# based on CROSS_COMPILE. Set CC and LD to remain compatible with those
+# versions.
+PFLASH_MAKE_OPTS += CC=$(TARGET_CC) LD=$(TARGET_LD)
 
 define PFLASH_BUILD_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE) $(PFLASH_MAKE_OPTS) all
