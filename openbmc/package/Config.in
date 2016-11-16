@@ -1,3 +1,3 @@
-source "$BR2_EXTERNAL/package/memboot/Config.in"
-source "$BR2_EXTERNAL/package/obmc-console/Config.in"
-source "$BR2_EXTERNAL/package/pflash/Config.in"
+source "$BR2_EXTERNAL_OPENBMC_PATH/package/memboot/Config.in"
+source "$BR2_EXTERNAL_OPENBMC_PATH/package/obmc-console/Config.in"
+source "$BR2_EXTERNAL_OPENBMC_PATH/package/pflash/Config.in"
