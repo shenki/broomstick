@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GPIO_BASE=320
+GPIO_BASE=292
 
 function asciiof {
 	printf %d \'$1\'
@@ -34,31 +34,7 @@ SYS_POWEROK_BMC=$(gpio h 2)
 SCM1_FSI0_DATA_EN=$(gpio h 6)
 BMC_TMP_INT_N=$(gpio h 7)
 
-INPUTS=$(cat << EOF
-$BMC_FAN_RESERVED_N
-$BMC_BATTERY_TEST
-$AST_HW_FAULT_N
-$AST_SYS_FAULT_N
-$BMC_WDT_RST1_P
-$BMC_WDT_RST2_P
-$PE_SLOT_TEST_EN_N
-$BMC_RTCRST_N
-EOF
-)
-
-HIGH_OUTPUTS=$(cat << EOF
-$APSS_WDT_N
-$APSS_BOOT_MODE
-$APSS_RESET_N
-$SPIVID_STBY_RESET_N
-$BMC_POWER_UP
-$BMC_FULL_SPEED_N
-$SCM1_FSI0_DATA_EN
-$BMC_TMP_INT_N
-EOF
-)
-
-for gpio in $HIGH_OUTPUTS $INPUTS $POWER $PGOOD $PCIE_RST_N $PEX_PERST_N;
+for gpio in $POWER $PGOOD $PCIE_RST_N $PEX_PERST_N;
 do
 	if [ ! -e /sys/class/gpio/gpio${gpio} ]
 	then

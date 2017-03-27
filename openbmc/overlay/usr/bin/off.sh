@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GPIO_BASE=320
+GPIO_BASE=292
 
 function asciiof {
 	printf %d \'$1\'
