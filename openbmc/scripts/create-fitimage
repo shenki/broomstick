@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -eu
+
+IMAGES_DIR=$1
+MKIMAGE=${HOST_DIR}/usr/bin/mkimage
+
+eval "$(grep BR2_LINUX_KERNEL_INTREE_DTS_NAME "${BR2_CONFIG}")"
+
+FIT_ITS=${IMAGES_DIR}/openbmc.its
+FIT_OUTPUT=${IMAGES_DIR}/${BR2_LINUX_KERNEL_INTREE_DTS_NAME}.itb
+
+KERNEL_PATH=${IMAGES_DIR}/zImage
+DTB_PATH=${IMAGES_DIR}/${BR2_LINUX_KERNEL_INTREE_DTS_NAME}.dtb
+ROOTFS_PATH=${IMAGES_DIR}/rootfs.cpio.xz
+
+cp ../openbmc/configs/openbmc.its "${FIT_ITS}"
+sed -i "s|KERNEL_BLOB|${KERNEL_PATH}|" "${FIT_ITS}"
+sed -i "s|DTB_BLOB|${DTB_PATH}|" "${FIT_ITS}"
+sed -i "s|ROOTFS_BLOB|${ROOTFS_PATH}|" "${FIT_ITS}"
+
+# Hack to change load address for ast2400 machines. Currently we only boot on
+# Palmetto
+if [[ "${BR2_LINUX_KERNEL_INTREE_DTS_NAME}" = "aspeed-bmc-opp-palmetto" ]]
+then
+	sed -i "s|0x80001000|0x40001000|" "${FIT_ITS}"
+fi
+
+${MKIMAGE} -f "${FIT_ITS}" "${FIT_OUTPUT}"
