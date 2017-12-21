@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PFLASH_VERSION = skiboot-5.4.0
+PFLASH_VERSION = v5.9.6
 
 PFLASH_SITE = $(call github,open-power,skiboot,$(PFLASH_VERSION))
 PFLASH_INSTALL_STAGING = YES
